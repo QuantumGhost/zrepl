@@ -1035,12 +1035,12 @@ func (e *DestroySnapshotsError) Error() string {
 		panic(fmt.Sprintf("error must have one undestroyable snapshot, %q", e.Filesystem))
 	}
 	if len(e.Undestroyable) == 1 {
-		return fmt.Sprintf("zfs destroy failed: %s@%s: %s", e.Filesystem, e.Undestroyable, e.Reason)
+		return fmt.Sprintf("zfs destroy failed: %s@%s: %s", e.Filesystem, e.Undestroyable[0], e.Reason[0])
 	}
 	return strings.Join(e.RawLines, "\n")
 }
 
-var destroySnapshotsErrorRegexp = regexp.MustCompile(`^cannot destroy snapshot (\S+)@(\S+): (.*)$`)
+var destroySnapshotsErrorRegexp = regexp.MustCompile(`^cannot destroy snapshot ([^@]+)@(.+): (.*)$`) // yes, datasets can contain `:`
 
 func tryParseDestroySnapshotsError(arg string, stderr []byte) *DestroySnapshotsError {
 
