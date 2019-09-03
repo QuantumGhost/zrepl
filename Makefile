@@ -1,4 +1,4 @@
-.PHONY: generate build test vet cover release docs docs-clean clean vendordeps format lint
+.PHONY: generate build test vet cover release docs docs-clean clean format lint
 .DEFAULT_GOAL := build
 
 ARTIFACTDIR := artifacts
@@ -25,9 +25,6 @@ RELEASE_BINS += $(ARTIFACTDIR)/zrepl-darwin-amd64
 RELEASE_NOARCH := $(ARTIFACTDIR)/zrepl-noarch.tar
 THIS_PLATFORM_RELEASE_BIN := $(shell bash -c 'source <(go env) && echo "zrepl-$${GOOS}-$${GOARCH}"' )
 
-vendordeps:
-	dep ensure -v -vendor-only
-
 generate: #not part of the build, must do that manually
 	protoc -I=replication/logic/pdu --go_out=plugins=grpc:replication/logic/pdu replication/logic/pdu/pdu.proto
 	go generate -x ./...
@@ -39,7 +36,6 @@ lint:
 	golangci-lint run ./...
 
 build:
-	@echo "INFO: In case of missing dependencies, run 'make vendordeps'"
 	$(GO_BUILD) -o "$(ARTIFACTDIR)/zrepl"
 
 test:
@@ -81,7 +77,6 @@ docs-clean:
 .PHONY: $(RELEASE_BINS)
 # TODO: two wildcards possible
 $(RELEASE_BINS): $(ARTIFACTDIR)/zrepl-%: generate $(ARTIFACTDIR) vet test lint
-	@echo "INFO: In case of missing dependencies, run 'make vendordeps'"
 	STEM=$*; GOOS="$${STEM%%-*}"; GOARCH="$${STEM##*-}"; export GOOS GOARCH; \
 		$(GO_BUILD) -o "$(ARTIFACTDIR)/zrepl-$$GOOS-$$GOARCH"
 
